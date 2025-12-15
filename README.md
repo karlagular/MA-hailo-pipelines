@@ -1,3 +1,18 @@
+# MA-hailo-pipelines
+
+Master’s thesis project on edge-based object detection using
+Hailo accelerators on Raspberry Pi 5.
+
+## Baseline
+This project is based on the open-source repository
+`hailo-rpi5-examples` by Hailo AI.
+The baseline version is preserved under the tag `baseline-hailo`.
+
+## Contributions
+- Custom object detection pipelines
+- Performance/accuracy evaluation
+- Pipeline and post-processing modifications
+
 
 ![Banner](doc/images/hailo_rpi_examples_banner.png)
 
