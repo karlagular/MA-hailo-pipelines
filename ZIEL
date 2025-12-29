@@ -36,7 +36,7 @@ del sistema:
 TO DOs:
 * PIPELINE:
 	- leer las configuraciones de un archivo de texto
-	- terminar la medicion de latencias
+	- terminar la medicion de latencias: max, min, avg de e2e + etapas (eventualmente deciles o cuartiles)
 	- escribir las latencias a un txt o cvs
 	- guardar las mediciones a una carpeta con el nombre del experimento
 	- devolver output en formato deseado
