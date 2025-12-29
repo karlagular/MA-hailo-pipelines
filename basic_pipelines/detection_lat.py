@@ -59,13 +59,17 @@ class StageTimer:
             return None
 
         # All values in ms
-        return {
+        result = {
+            "upstream_ms": (rec["src_out"] - pts_ns) / 1e6,
             "source_ms":  (rec["wrapper_in"]  - rec["src_out"])     / 1e6,
             "wrapper_ms": (rec["wrapper_out"] - rec["wrapper_in"])  / 1e6,
             "tracker_ms": (rec["tracker_out"] - rec["wrapper_out"]) / 1e6,
             "to_cb_ms":   (rec["cb_out"]      - rec["tracker_out"]) / 1e6,
             "e2e_ms":     (rec["cb_out"]      - rec["src_out"])     / 1e6,
         }
+        # Full latency from PTS to cb_out
+        result["pts_to_cb_ms"] = (rec["cb_out"] - pts_ns) / 1e6
+        return result
 
     def cleanup(self, pts_ns: int):
         self.t.pop(pts_ns, None)
@@ -219,7 +223,8 @@ def app_callback(pad, info, user_data):
     pts_ns = buf.pts
     if pts_ns != Gst.CLOCK_TIME_NONE:
         # We are executing on an identity_callback:src, so this is the correct cb_out mark.
-        user_data.stage_timer.mark(pts_ns, "cb_out", running_time_ns(user_data.pipeline))
+        cb_rt_ns = running_time_ns(user_data.pipeline)
+        user_data.stage_timer.mark(pts_ns, "cb_out", cb_rt_ns)
         
         stage = user_data.stage_timer.compute(pts_ns)
 
@@ -228,11 +233,13 @@ def app_callback(pad, info, user_data):
             if stage is not None:
                 print(
                     "[STAGES] "
+                    f"upstream={stage['upstream_ms']:.1f} ms | "
                     f"source={stage['source_ms']:.1f} ms | "
                     f"wrapper={stage['wrapper_ms']:.1f} ms | "
                     f"tracker={stage['tracker_ms']:.1f} ms | "
                     f"to_cb={stage['to_cb_ms']:.1f} ms | "
-                    f"e2e={stage['e2e_ms']:.1f} ms"
+                    f"e2e={stage['e2e_ms']:.1f} ms | "
+                    f"pts_to_cb={stage['pts_to_cb_ms']:.1f} ms"
                 )
                 user_data.stage_timer.cleanup(pts_ns)
             else:
@@ -242,12 +249,11 @@ def app_callback(pad, info, user_data):
                     user_data.missing_logs += 1
 
         # ------------------------
-        # End-to-end latency (callback)
+        # last_ms: always measure from camera PTS to cb_out
         # ------------------------
-        latency_ms = (running_time_ns(user_data.pipeline) - pts_ns) / 1e6
-        user_data.update_latency(latency_ms)
+        user_data.update_latency((cb_rt_ns - pts_ns) / 1e6)
 
-        if user_data.n % 30 == 0:
+        if user_data.get_count() % 30 == 0:
             print(f"[LAT] n={user_data.n} last={user_data.last_ms:.2f} ms avg={user_data.avg_ms:.2f} ms")
 
     # Keep original functionality
