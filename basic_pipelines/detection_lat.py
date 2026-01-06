@@ -175,11 +175,6 @@ class user_app_callback_class(app_callback_class):
         self.probes_attached = False
         self.missing_logs = 0
 
-    def update_latency(self, ms: float):
-        self.n += 1
-        self.last_ms = ms
-        self.avg_ms += (ms - self.avg_ms) / self.n
-
     def find_pipeline_from_pad(self, pad):
         elem = pad.get_parent_element()
         while elem is not None:
@@ -250,18 +245,9 @@ def app_callback(pad, info, user_data):
                     print("[STAGES] waiting for:", user_data.stage_timer.missing(pts_ns))
                     user_data.missing_logs += 1
 
-        # ------------------------
-        # last_ms: always measure from camera PTS to cb_out
-        # ------------------------
-        user_data.update_latency((cb_rt_ns - pts_ns) / 1e6)
-
-        if user_data.get_count() % 30 == 0:
-            print(f"[LAT] n={user_data.n} last={user_data.last_ms:.2f} ms avg={user_data.avg_ms:.2f} ms")
-
     # Optional: keep your detection parsing / frame code here
 
     return Gst.PadProbeReturn.OK
-
 
 # -----------------------------------------------------------------------------------------------
 # Main
