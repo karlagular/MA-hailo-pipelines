@@ -197,6 +197,8 @@ def app_callback(pad, info, user_data):
     if buf is None:
         return Gst.PadProbeReturn.OK
 
+    user_data.increment()
+
     # Confirm callback attachment once
     if not hasattr(user_data, "printed_cb_owner"):
         owner = pad.get_parent_element()
@@ -255,9 +257,6 @@ def app_callback(pad, info, user_data):
 
         if user_data.get_count() % 30 == 0:
             print(f"[LAT] n={user_data.n} last={user_data.last_ms:.2f} ms avg={user_data.avg_ms:.2f} ms")
-
-    # Keep original functionality
-    user_data.increment()
 
     # Optional: keep your detection parsing / frame code here
 
