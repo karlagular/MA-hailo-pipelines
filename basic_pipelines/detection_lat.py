@@ -3,6 +3,7 @@ import gi
 gi.require_version("Gst", "1.0")
 from gi.repository import Gst, GLib
 import os
+import atexit
 import numpy as np
 import cv2
 import hailo
@@ -11,6 +12,31 @@ from collections import deque
 from hailo_apps.hailo_app_python.core.common.buffer_utils import get_caps_from_pad, get_numpy_from_buffer
 from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import app_callback_class
 from hailo_apps.hailo_app_python.apps.detection.detection_pipeline import GStreamerDetectionApp
+
+
+# -----------------------------------------------------------------------------------------------
+# Log buffer with graceful Ctrl+C shutdown
+# -----------------------------------------------------------------------------------------------
+class LogBuffer:
+    """Accumulates log messages and saves on process exit (atexit)."""
+    def __init__(self, log_file="latency_log.txt"):
+        self.log_file = log_file
+        self.logs = []
+        atexit.register(self._save)
+    
+    def log(self, msg: str):
+        """Log message to buffer and print to console."""
+        self.logs.append(msg)
+        print(msg)
+    
+    def _save(self):
+        """Save logs to file; create the file even if empty."""
+        try:
+            with open(self.log_file, 'w') as f:
+                f.write('\n'.join(self.logs))
+            print(f"\n[EXPORT] Logs saved to {self.log_file}")
+        except Exception as e:
+            print(f"\n[ERROR] Could not save logs: {e}")
 
 
 # -----------------------------------------------------------------------------------------------
@@ -161,9 +187,11 @@ class user_app_callback_class(app_callback_class):
     """
     Shared state across callbacks.
     """
-    def __init__(self):
+    def __init__(self, logger=None):
         super().__init__()
         self.pipeline = None
+        self.logger = logger  # Reference to LogBuffer
+        self.logger_announced = False
 
         # End-to-end latency stats (based on callback PTS vs running-time)
         self.n = 0
@@ -201,6 +229,14 @@ def app_callback(pad, info, user_data):
         print("[CB] pad name:", pad.get_name())
         user_data.printed_cb_owner = True
 
+    # Announce logger status once for debug
+    if not user_data.logger_announced:
+        if user_data.logger:
+            user_data.logger.log("[DEBUG] Logger is attached and active")
+        else:
+            print("[DEBUG] Logger is NOT attached; falling back to print")
+        user_data.logger_announced = True
+
     # Resolve pipeline once
     if user_data.pipeline is None:
         user_data.pipeline = user_data.find_pipeline_from_pad(pad)
@@ -228,7 +264,7 @@ def app_callback(pad, info, user_data):
         # Print stage latencies every 30 frames (based on app_callback frame counter)
         if user_data.get_count() % 30 == 0:
             if stage is not None:
-                print(
+                msg = (
                     "[STAGES] "
                     f"upstream={stage['upstream_ms']:.1f} ms | "
                     f"source={stage['source_ms']:.1f} ms | "
@@ -238,11 +274,19 @@ def app_callback(pad, info, user_data):
                     f"e2e={stage['e2e_ms']:.1f} ms | "
                     f"pts_to_cb={stage['pts_to_cb_ms']:.1f} ms"
                 )
+                if user_data.logger:
+                    user_data.logger.log(msg)
+                else:
+                    print(msg)
                 user_data.stage_timer.cleanup(pts_ns)
             else:
                 # Limited debug: show what is missing (helps confirm correlation is working)
                 if user_data.missing_logs < 5:
-                    print("[STAGES] waiting for:", user_data.stage_timer.missing(pts_ns))
+                    msg = f"[STAGES] waiting for: {user_data.stage_timer.missing(pts_ns)}"
+                    if user_data.logger:
+                        user_data.logger.log(msg)
+                    else:
+                        print(msg)
                     user_data.missing_logs += 1
 
     # Optional: keep your detection parsing / frame code here
@@ -257,6 +301,10 @@ if __name__ == "__main__":
     env_file = project_root / ".env"
     os.environ["HAILO_ENV_FILE"] = str(env_file)
 
-    user_data = user_app_callback_class()
+    # Initialize logger (saves on Ctrl+C with zero runtime impact)
+    logger = LogBuffer("latency_log.txt")
+    logger.log("[INFO] Starting latency measurement...")
+    
+    user_data = user_app_callback_class(logger=logger)
     app = GStreamerDetectionApp(app_callback, user_data)
     app.run()
