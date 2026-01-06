@@ -29,6 +29,10 @@ class LogBuffer:
         self.logs.append(msg)
         print(msg)
     
+    def append_summary(self, msg: str):
+        """Append summary text without printing to console."""
+        self.logs.append(msg)
+    
     def _save(self):
         """Save logs to file; create the file even if empty."""
         try:
@@ -104,6 +108,44 @@ class StageTimer:
 def running_time_ns(pipeline: Gst.Pipeline) -> int:
     """Pipeline running-time (ns) = clock_time - base_time."""
     return pipeline.get_clock().get_time() - pipeline.get_base_time()
+
+
+# -----------------------------------------------------------------------------------------------
+# Latency statistics tracker
+# -----------------------------------------------------------------------------------------------
+class LatencyStats:
+    """Tracks min/max/sum of latencies for each stage."""
+    def __init__(self):
+        self.stages = [
+            "upstream_ms", "source_ms", "wrapper_ms", "tracker_ms",
+            "to_cb_ms", "e2e_ms", "pts_to_cb_ms"
+        ]
+        self.data = {stage: [] for stage in self.stages}
+    
+    def record(self, stage_dict):
+        """Record a measurement from computed stage latencies."""
+        if stage_dict is None:
+            return
+        for stage in self.stages:
+            if stage in stage_dict:
+                self.data[stage].append(stage_dict[stage])
+    
+    def summary_lines(self):
+        """Generate summary lines with min/max/avg for each stage."""
+        lines = ["\n" + "="*80]
+        lines.append("LATENCY SUMMARY (min / max / average)")
+        lines.append("="*80)
+        for stage in self.stages:
+            values = self.data[stage]
+            if not values:
+                lines.append(f"{stage:15} : no data")
+            else:
+                min_val = min(values)
+                max_val = max(values)
+                avg_val = sum(values) / len(values)
+                lines.append(f"{stage:15} : {min_val:8.2f} / {max_val:8.2f} / {avg_val:8.2f} ms")
+        lines.append("="*80)
+        return lines
 
 
 def make_stage_probe(user_data, stage_name: str):
@@ -202,6 +244,9 @@ class user_app_callback_class(app_callback_class):
         self.stage_timer = StageTimer()
         self.probes_attached = False
         self.missing_logs = 0
+        
+        # Latency statistics
+        self.latency_stats = LatencyStats()
 
     def find_pipeline_from_pad(self, pad):
         elem = pad.get_parent_element()
@@ -264,6 +309,9 @@ def app_callback(pad, info, user_data):
         # Print stage latencies every 30 frames (based on app_callback frame counter)
         if user_data.get_count() % 30 == 0:
             if stage is not None:
+                # Record statistics
+                user_data.latency_stats.record(stage)
+                
                 msg = (
                     "[STAGES] "
                     f"upstream={stage['upstream_ms']:.1f} ms | "
@@ -306,5 +354,14 @@ if __name__ == "__main__":
     logger.log("[INFO] Starting latency measurement...")
     
     user_data = user_app_callback_class(logger=logger)
+    
+    # Register cleanup function to append summary before exit
+    def append_summary_on_exit():
+        summary_lines = user_data.latency_stats.summary_lines()
+        for line in summary_lines:
+            logger.append_summary(line)
+    
+    atexit.register(append_summary_on_exit)
+    
     app = GStreamerDetectionApp(app_callback, user_data)
     app.run()
