@@ -162,6 +162,7 @@ venv_hailo_rpi5_examples/*
 resources/*.mp4
 resources/*.hef
 resources/*.so
+latency_log.txt
 =======
 # Byte-compiled files
 __pycache__/
