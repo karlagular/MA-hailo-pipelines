@@ -35,6 +35,7 @@ del sistema:
 
 TO DOs:
 * PIPELINE:
+	- logging opcional -> evitar creacion de darpeta y resumen de variables cuando flag no presente
 	- decidir entre detection_lat y -_simple
 	- devolver output en formato deseado
 	- detener el programa a partir de una senal
