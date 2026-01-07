@@ -8,10 +8,69 @@ import numpy as np
 import cv2
 import hailo
 from collections import deque
+import json
+from datetime import datetime
 
 from hailo_apps.hailo_app_python.core.common.buffer_utils import get_caps_from_pad, get_numpy_from_buffer
 from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import app_callback_class
 from hailo_apps.hailo_app_python.apps.detection.detection_pipeline import GStreamerDetectionApp
+
+
+# -----------------------------------------------------------------------------------------------
+# Experiment setup helpers
+# -----------------------------------------------------------------------------------------------
+def load_experiment_config(config_path: str = "experiment_config.json"):
+    """Load experiment variables from JSON config file."""
+    config_file = Path(config_path)
+    if not config_file.exists():
+        print(f"[WARN] Config file '{config_path}' not found. Using defaults.")
+        return {}
+    
+    try:
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+        print(f"[INFO] Loaded experiment config from '{config_path}'")
+        return config
+    except Exception as e:
+        print(f"[ERROR] Failed to load config: {e}")
+        return {}
+
+
+def create_experiment_folder(base_path: Path, experiment_vars: dict):
+    """Create timestamped experiment folder based on variables."""
+    # Ensure base results directory exists
+    results_dir = base_path / "Experimental_results"
+    results_dir.mkdir(exist_ok=True)
+    
+    # Generate folder name from experiment variables and timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Create descriptive name from key experiment variables
+    var_parts = []
+    for key, value in sorted(experiment_vars.items()):
+        # Sanitize values for folder names
+        sanitized_value = str(value).replace(' ', '_').replace('/', '-')
+        var_parts.append(f"{key}={sanitized_value}")
+    
+    if var_parts:
+        folder_name = f"{timestamp}_{'_'.join(var_parts)}"
+    else:
+        folder_name = f"{timestamp}_default"
+    
+    # Create experiment folder
+    experiment_dir = results_dir / folder_name
+    experiment_dir.mkdir(exist_ok=True)
+    
+    # Save config copy to experiment folder
+    config_copy = experiment_dir / "experiment_config.json"
+    with open(config_copy, 'w') as f:
+        json.dump({
+            "timestamp": timestamp,
+            "variables": experiment_vars
+        }, f, indent=2)
+    
+    print(f"[INFO] Experiment folder created: {experiment_dir}")
+    return experiment_dir
 
 
 # -----------------------------------------------------------------------------------------------
@@ -349,9 +408,19 @@ if __name__ == "__main__":
     env_file = project_root / ".env"
     os.environ["HAILO_ENV_FILE"] = str(env_file)
 
-    # Initialize logger (saves on Ctrl+C with zero runtime impact)
-    logger = LogBuffer("latency_log.txt")
+    # Load experiment configuration
+    experiment_config = load_experiment_config(project_root / "experiment_config.json")
+    
+    # Create experiment folder
+    experiment_dir = create_experiment_folder(project_root, experiment_config)
+    
+    # Initialize logger with path in experiment  (saves on exit without runtime impact)
+    log_path = experiment_dir / "latency_log.txt"
+    logger = LogBuffer(str(log_path))
     logger.log("[INFO] Starting latency measurement...")
+    logger.log(f"[INFO] Experiment folder: {experiment_dir}")
+    if experiment_config:
+        logger.log(f"[INFO] Experiment variables: {experiment_config}")
     
     user_data = user_app_callback_class(logger=logger)
     
