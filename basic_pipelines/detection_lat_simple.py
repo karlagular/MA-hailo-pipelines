@@ -14,6 +14,7 @@ from datetime import datetime
 from hailo_apps.hailo_app_python.core.common.buffer_utils import get_caps_from_pad, get_numpy_from_buffer
 from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import app_callback_class
 from hailo_apps.hailo_app_python.apps.detection_simple.detection_pipeline_simple import GStreamerDetectionApp
+import argparse
 
 # If the video is stretched, change video_width and video_height in GStreamerDetectionApp above (detection_pipeline_simple.py)
 # -----------------------------------------------------------------------------------------------
@@ -375,6 +376,10 @@ def app_callback(pad, info, user_data):
 # Main
 # -----------------------------------------------------------------------------------------------
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Latency measurement for simple detection pipeline")
+    parser.add_argument("--save-logs", action="store_true", help="Save logs to file (default: console only)")
+    args, _ = parser.parse_known_args()
+
     project_root = Path(__file__).resolve().parent.parent
     env_file = project_root / ".env"
     os.environ["HAILO_ENV_FILE"] = str(env_file)
@@ -385,23 +390,39 @@ if __name__ == "__main__":
     # Create experiment folder
     experiment_dir = create_experiment_folder(project_root, experiment_config)
     
-    # Initialize logger with path in experiment folder (saves on exit without runtime impact)
-    log_path = experiment_dir / "latency_log.txt"
-    logger = LogBuffer(str(log_path))
-    logger.log("[INFO] Starting latency measurement (SIMPLE PIPELINE - no tracking)...")
-    logger.log(f"[INFO] Experiment folder: {experiment_dir}")
-    if experiment_config:
-        logger.log(f"[INFO] Experiment variables: {experiment_config}")
+    # Initialize logger conditionally based on flag
+    if args.save_logs:
+        log_path = experiment_dir / "latency_log.txt"
+        logger = LogBuffer(str(log_path))
+        logger.log("[INFO] Starting latency measurement (SIMPLE PIPELINE - no tracking)...")
+        logger.log(f"[INFO] Experiment folder: {experiment_dir}")
+        if experiment_config:
+            logger.log(f"[INFO] Experiment variables: {experiment_config}")
+    else:
+        logger = None
+        print("[INFO] Starting latency measurement (SIMPLE PIPELINE - no tracking, console only)...")
+        print(f"[INFO] Experiment folder: {experiment_dir}")
+        if experiment_config:
+            print(f"[INFO] Experiment variables: {experiment_config}")
     
     user_data = user_app_callback_class(logger=logger)
     
-    # Register cleanup function to append summary before exit
-    def append_summary_on_exit():
-        summary_lines = user_data.latency_stats.summary_lines()
-        for line in summary_lines:
-            logger.append_summary(line)
-    
-    atexit.register(append_summary_on_exit)
+    # Register cleanup function to append summary before exit (only if saving logs)
+    if args.save_logs:
+        def append_summary_on_exit():
+            summary_lines = user_data.latency_stats.summary_lines()
+            for line in summary_lines:
+                logger.append_summary(line)
+        
+        atexit.register(append_summary_on_exit)
+    else:
+        # Print summary to console on exit
+        def print_summary_on_exit():
+            summary_lines = user_data.latency_stats.summary_lines()
+            for line in summary_lines:
+                print(line)
+        
+        atexit.register(print_summary_on_exit)
     
     app = GStreamerDetectionApp(app_callback, user_data)
     app.run()
