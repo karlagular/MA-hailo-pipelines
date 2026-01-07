@@ -49,7 +49,7 @@ TO DOs:
 	- dibujar case para mantener junto camara (removible), rpi+hat, ventilador, display cables conectados
 	- dibujar la base (pies) del sistema con cableado ordenado
 * ORGA:
-	- revisar y etablecer las variables de los experimentos
+	- revisar y etablecer las variables de los experimentos: HW: STREAM, CAMERA, COMPUTER; EXP: Beleuchtung, enclosure, Vibration, Bewegung in Z, Kamerawinkel
 	- determinar otros factores a documentar (temperatura)
 	- recoger cable IO & case de HH
 	- probar el display
