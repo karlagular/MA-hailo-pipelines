@@ -1,8 +1,10 @@
-<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
 __pycache__/
+hailo_apps_infra/__pycache__/
 *.py[cod]
 *$py.class
+*.pyc
+*.pyo
 
 # C extensions
 *.so
@@ -10,6 +12,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+build.release/
 develop-eggs/
 dist/
 downloads/
@@ -52,6 +55,7 @@ coverage.xml
 .pytest_cache/
 cover/
 junit/
+coverage/
 
 # Translations
 *.mo
@@ -59,6 +63,7 @@ junit/
 
 # Django stuff:
 *.log
+*.tmp
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -163,31 +168,4 @@ resources/*.mp4
 resources/*.hef
 resources/*.so
 latency_log.txt
-=======
-# Byte-compiled files
-__pycache__/
-hailo_apps_infra/__pycache__/
-*.pyc
-*.pyo
-
-# Resources
-resources/*.so
-resources/*.hef
-resources/*.mp4
-
-# Logs and temp files
-*.log
-*.tmp
-
-# Packages and dependencies
-*.egg-info/
-
-# Build, cache, and coverage files
-build/
-build.release/
-dist/
-*.egg
-*.egg-info/
-.cache/
-coverage/
->>>>>>> 6fc8e4a (Initial drop (#3))
+Experimental_results/
