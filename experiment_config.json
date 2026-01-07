@@ -1,8 +1,10 @@
 {
-  "model": "yolov5m",
-  "resolution": "640x640",
-  "batch_size": 1,
-  "fps_target": 30,
-  "input_source": "rpi",
-  "notes": "Baseline latency test"
+  "stream": "rpi camera cable",
+  "camera": "rpicam v2",
+  "computer": "rpi5+aihat",
+  "beleuchtung": 0,
+  "enclosure": 0,
+  "vibration": 0,
+  "z-axis": "Druckkopf",
+  "kamerawinkel": "diagonal"
 }
