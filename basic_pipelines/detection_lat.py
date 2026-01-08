@@ -14,6 +14,7 @@ from datetime import datetime
 from hailo_apps.hailo_app_python.core.common.buffer_utils import get_caps_from_pad, get_numpy_from_buffer
 from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import app_callback_class
 from hailo_apps.hailo_app_python.apps.detection.detection_pipeline import GStreamerDetectionApp
+from hailo_apps.hailo_app_python.core.common.core import get_default_parser
 import argparse
 
 
@@ -405,9 +406,9 @@ def app_callback(pad, info, user_data):
 # Main
 # -----------------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Latency measurement for detection pipeline")
+    # Get default parser and add custom argument
+    parser = get_default_parser()
     parser.add_argument("--save-logs", action="store_true", help="Save logs to file (default: console only)")
-    args, _ = parser.parse_known_args()
 
     project_root = Path(__file__).resolve().parent.parent
     env_file = project_root / ".env"
@@ -419,7 +420,14 @@ if __name__ == "__main__":
     # Create experiment folder
     experiment_dir = create_experiment_folder(project_root, experiment_config)
     
-    # Initialize logger conditionally based on flag
+    # Create user_data first (without logger)
+    user_data = user_app_callback_class(logger=None)
+    
+    # Create app with parser (will merge arguments)
+    app = GStreamerDetectionApp(app_callback, user_data, parser)
+    args = app.options_menu  # Get parsed args from the app
+    
+    # Initialize logger conditionally based on flag and update user_data
     if args.save_logs:
         log_path = experiment_dir / "latency_log.txt"
         logger = LogBuffer(str(log_path))
@@ -427,14 +435,12 @@ if __name__ == "__main__":
         logger.log(f"[INFO] Experiment folder: {experiment_dir}")
         if experiment_config:
             logger.log(f"[INFO] Experiment variables: {experiment_config}")
+        user_data.logger = logger  # Update logger in user_data
     else:
-        logger = None
         print("[INFO] Starting latency measurement (console only)...")
         print(f"[INFO] Experiment folder: {experiment_dir}")
         if experiment_config:
             print(f"[INFO] Experiment variables: {experiment_config}")
-    
-    user_data = user_app_callback_class(logger=logger)
     
     # Register cleanup function to append summary before exit (only if saving logs)
     if args.save_logs:
@@ -453,5 +459,4 @@ if __name__ == "__main__":
         
         atexit.register(print_summary_on_exit)
     
-    app = GStreamerDetectionApp(app_callback, user_data)
     app.run()
