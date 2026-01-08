@@ -31,6 +31,7 @@ del sistema:
 	- postprocess
 	- output
 	- display
+* mAP validacion con 100 fotos anotadas de internet
 * mAP experimental (COMO??)
 
 TO DOs:
@@ -50,7 +51,5 @@ TO DOs:
 * ORGA:
 	- revisar y etablecer las variables de los experimentos: HW: STREAM, CAMERA, COMPUTER; EXP: Beleuchtung, enclosure, Vibration, Bewegung in Z, Kamerawinkel
 	- determinar otros factores a documentar (temperatura)
-	- recoger cable IO & case de HH
-	- probar el display
 	- establecer formato de output del sistema (json, opcua,...)
-	- crear dataset para evaluar el modelo (colectar y labelear imagenes)
+	- crear dataset para evaluar el modelo (colectar y labelear (COCO igwas) imagenes)
