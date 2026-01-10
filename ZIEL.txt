@@ -35,12 +35,17 @@ del sistema:
 * mAP experimental (COMO??)
 
 TO DOs:
+* PREGUNTAS PARA JOHANNES:
+	- contacto del HiWi que le sabe a su repository del jetson
+	- contacto del que corta los item profiles para mi construccion
+	- hay que cambiar el case pq no entra, maybe incluso pedir tornillos largos para sostener
+	- comprobar que el labeling del dataset sintetico hace las bounding boxes al rededor del error y no de la pieza (para hacerlo igual yo con mis imagenes de internet)
 * PIPELINE:
-	- logging opcional -> evitar creacion de darpeta y resumen de variables cuando flag no presente
 	- decidir entre detection_lat y -_simple
 	- devolver output en formato deseado
 	- detener el programa a partir de una senal
 * GUI: 
+	- test 1st version of GUI
 	- select video source, AM-Machine & other experiment variables
 	- show video stream, bounding boxes, detected class, alarm sign, current e2e latency
 	- Stop button
@@ -49,6 +54,8 @@ TO DOs:
 	- dibujar case para mantener junto camara (removible), rpi+hat, ventilador, display cables conectados
 	- dibujar la base (pies) del sistema con cableado ordenado
 * ORGA:
+	- invertir pins de venitrlador amarillo y negro
+	- conectar ventilador a rpi io pins: dejar uno libre, power +5V (amarillo), ground (negro), dejar dos libres, pwm signal +5V (azul)
 	- revisar y etablecer las variables de los experimentos: HW: STREAM, CAMERA, COMPUTER; EXP: Beleuchtung, enclosure, Vibration, Bewegung in Z, Kamerawinkel
 	- determinar otros factores a documentar (temperatura)
 	- establecer formato de output del sistema (json, opcua,...)
