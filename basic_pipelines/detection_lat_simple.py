@@ -385,12 +385,6 @@ if __name__ == "__main__":
     env_file = project_root / ".env"
     os.environ["HAILO_ENV_FILE"] = str(env_file)
 
-    # Load experiment configuration
-    experiment_config = load_experiment_config(project_root / "experiment_config.json")
-    
-    # Create experiment folder
-    experiment_dir = create_experiment_folder(project_root, experiment_config)
-    
     # Create user_data first (without logger)
     user_data = user_app_callback_class(logger=None)
     
@@ -400,6 +394,12 @@ if __name__ == "__main__":
     
     # Initialize logger conditionally based on flag and update user_data
     if args.save_logs:
+        # Load experiment configuration
+        experiment_config = load_experiment_config(project_root / "experiment_config.json")
+        
+        # Create experiment folder
+        experiment_dir = create_experiment_folder(project_root, experiment_config)
+        
         log_path = experiment_dir / "latency_log.txt"
         logger = LogBuffer(str(log_path))
         logger.log("[INFO] Starting latency measurement (SIMPLE PIPELINE - no tracking)...")
@@ -409,9 +409,6 @@ if __name__ == "__main__":
         user_data.logger = logger  # Update logger in user_data
     else:
         print("[INFO] Starting latency measurement (SIMPLE PIPELINE - no tracking, console only)...")
-        print(f"[INFO] Experiment folder: {experiment_dir}")
-        if experiment_config:
-            print(f"[INFO] Experiment variables: {experiment_config}")
     
     # Register cleanup function to append summary before exit (only if saving logs)
     if args.save_logs:
