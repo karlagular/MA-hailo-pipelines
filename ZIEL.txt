@@ -45,7 +45,8 @@ TO DOs:
 	- devolver output en formato deseado
 	- detener el programa a partir de una senal
 * GUI: 
-	- test 1st version of GUI
+	- test 1st version of GUI also on detection_lat
+	- adapt also for detection_lat_simple
 	- select video source, AM-Machine & other experiment variables
 	- show video stream, bounding boxes, detected class, alarm sign, current e2e latency
 	- Stop button
