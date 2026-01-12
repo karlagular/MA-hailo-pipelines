@@ -48,6 +48,9 @@ TO DOs:
 	- decidir entre detection_lat y -_simple
 	- devolver output en formato deseado
 	- detener el programa a partir de una senal
+* POSTPROCESSING:
+	- convertir log txt en cvs, excel o pandas
+	- hacer graficas
 * GUI: 
 	- mejorar tiempo de senal de alarma:
 		- procesar todas las detecciones de la inferencia (se evitara el spam de la terminal desde dentro)
