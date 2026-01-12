@@ -1,10 +1,10 @@
 {
   "stream": "rpi camera cable",
-  "camera": "rpicam v2",
-  "computer": "rpi5+aihat",
-  "beleuchtung": 0,
+  "camera": "rpicam v3",
+  "computer": "rpi5",
+  "beleuchtung": 1,
   "enclosure": 0,
-  "vibration": 0,
+  "vibration": 1,
   "z-axis": "Druckkopf",
-  "kamerawinkel": "diagonal"
+  "kamerawinkel": "frontal"
 }
