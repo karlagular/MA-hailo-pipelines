@@ -398,7 +398,18 @@ def app_callback(pad, info, user_data):
                         print(msg)
                     user_data.missing_logs += 1
 
-    # Optional: keep your detection parsing / frame code here
+    # Detection parsing - only log cups
+    roi = hailo.get_roi_from_buffer(buf)
+    detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
+    if detections:
+        for detection in detections:
+            label = detection.get_label()
+            # Only print if it's a cup
+            if label.lower() == "cup":
+                confidence = detection.get_confidence()
+                print(f"[DETECTION] Object: {label}, Confidence: {confidence:.2f}")
+                if user_data.logger:
+                    user_data.logger.log(f"[DETECTION] Object: {label}, Confidence: {confidence:.2f}")
 
     return Gst.PadProbeReturn.OK
 

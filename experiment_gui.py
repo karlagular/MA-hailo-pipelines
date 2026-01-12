@@ -35,7 +35,7 @@ class DetectionMonitorThread(QThread):
     def __init__(self, process):
         super().__init__()
         self.process = process
-        self.target_objects = ["cup", "bottle", "person"]  # Objects to monitor
+        self.target_objects = ["cup"]  # Objects to monitor
         self.running = True
     
     def run(self):
@@ -72,6 +72,8 @@ class ExperimentGUI(QMainWindow):
         self.monitor_thread = None
         self.config_path = Path(__file__).parent / "experiment_config.json"
         self.script_path = Path(__file__).parent / "basic_pipelines" / "detection_lat.py"
+        self.alert_dialog = None  # Track active alert dialog
+        self.stopping = False  # Flag to prevent alerts after stop is requested
         
         self.init_ui()
         self.load_current_config()
@@ -284,6 +286,9 @@ class ExperimentGUI(QMainWindow):
     def start_inference(self):
         """Launch the detection script."""
         try:
+            # Reset stopping flag for new inference session
+            self.stopping = False
+            
             # Start detection script as subprocess
             cmd = [
                 sys.executable,
@@ -325,6 +330,9 @@ class ExperimentGUI(QMainWindow):
             
             if reply == QMessageBox.Yes:
                 try:
+                    # Set flag to prevent new alerts after having stopped the program
+                    self.stopping = True
+                    
                     # Send SIGINT for graceful shutdown
                     self.process.send_signal(signal.SIGINT)
                     
@@ -344,6 +352,13 @@ class ExperimentGUI(QMainWindow):
     
     def on_object_detected(self, object_name):
         """Handle object detection alert."""
+        # Don't show alerts if stopping or if an alert is already open
+        if self.stopping:
+            return  # Stop was requested, ignore detections
+        
+        if self.alert_dialog is not None and self.alert_dialog.isVisible():
+            return  # Alert already open, ignore this detection
+        
         alert = QMessageBox(self)
         alert.setIcon(QMessageBox.Warning)
         alert.setWindowTitle("Object Detected!")
@@ -353,7 +368,9 @@ class ExperimentGUI(QMainWindow):
         stop_btn = alert.addButton("Stop Program", QMessageBox.ActionRole)
         continue_btn = alert.addButton("Continue", QMessageBox.RejectRole)
         
+        self.alert_dialog = alert  # Track the active alert
         alert.exec_()
+        self.alert_dialog = None  # Clear when closed
         
         if alert.clickedButton() == stop_btn:
             # Send error signal (could write to file or socket)
