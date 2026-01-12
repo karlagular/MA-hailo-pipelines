@@ -13,7 +13,7 @@ from pathlib import Path
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QComboBox, QCheckBox, QPushButton, QMessageBox, QGroupBox,
-    QGridLayout
+    QGridLayout, QLineEdit
 )
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtGui import QFont
@@ -138,6 +138,13 @@ class ExperimentGUI(QMainWindow):
         params_layout.addWidget(self.kamerawinkel_combo, row, 1)
         row += 1
         
+        # Text input field
+        params_layout.addWidget(QLabel("Machine Model:"), row, 0)
+        self.machine_model_input = QLineEdit()
+        self.machine_model_input.setPlaceholderText("Enter machine model...")
+        params_layout.addWidget(self.machine_model_input, row, 1)
+        row += 1
+        
         # Checkbox fields
         params_layout.addWidget(QLabel("Beleuchtung:"), row, 0)
         self.beleuchtung_check = QCheckBox()
@@ -222,6 +229,10 @@ class ExperimentGUI(QMainWindow):
                 self.enclosure_check.setChecked(bool(config.get("enclosure", 0)))
                 self.vibration_check.setChecked(bool(config.get("vibration", 0)))
                 
+                # Set text input value
+                if "machine_model" in config:
+                    self.machine_model_input.setText(config["machine_model"])
+                
             except Exception as e:
                 QMessageBox.warning(self, "Load Error", f"Could not load config: {e}")
     
@@ -235,6 +246,7 @@ class ExperimentGUI(QMainWindow):
         self.beleuchtung_check.setChecked(False)
         self.enclosure_check.setChecked(False)
         self.vibration_check.setChecked(False)
+        self.machine_model_input.clear()
         self.status_label.setText("Fields reset")
         self.status_label.setStyleSheet("color: blue; font-weight: bold;")
     
@@ -249,7 +261,8 @@ class ExperimentGUI(QMainWindow):
             "enclosure": 1 if self.enclosure_check.isChecked() else 0,
             "vibration": 1 if self.vibration_check.isChecked() else 0,
             "z-axis": self.z_axis_combo.currentText(),
-            "kamerawinkel": self.kamerawinkel_combo.currentText()
+            "kamerawinkel": self.kamerawinkel_combo.currentText(),
+            "machine_model": self.machine_model_input.text().strip()
         }
         
         # Save to JSON
@@ -279,6 +292,7 @@ class ExperimentGUI(QMainWindow):
         self.beleuchtung_check.setEnabled(not frozen)
         self.enclosure_check.setEnabled(not frozen)
         self.vibration_check.setEnabled(not frozen)
+        self.machine_model_input.setEnabled(not frozen)
         self.reset_button.setEnabled(not frozen)
         self.continue_button.setEnabled(not frozen)
         self.stop_button.setEnabled(frozen)
