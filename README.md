@@ -8,6 +8,11 @@ This project is based on the open-source repository
 `hailo-rpi5-examples` by Hailo AI.
 The baseline version is preserved under the tag `baseline-hailo`.
 
+There are tweaks to be done probably locally on files not included in this git. i.e. 
+The comments in detection_lat should indicate what and where to modify.
+detecion_pipeline.py
+gstreamer_helper_pipelines.py
+
 ## Contributions
 - Custom object detection pipelines
 - Performance/accuracy evaluation
