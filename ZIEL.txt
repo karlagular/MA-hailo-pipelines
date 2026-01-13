@@ -43,12 +43,14 @@ TO DOs:
 * PIPELINE:
 	- guardar una foto cuando se detecte un error con timestamp
 	- decidir entre detection_lat y -_simple
-	- devolver output en formato deseado
+	- devolver output en formato deseado (MQTT/ OPC UA)
 	- detener el programa a partir de una senal
 * POSTPROCESSING:
 	- convertir log txt en cvs, excel o pandas
 	- hacer graficas
-* GUI: 
+* GUI:
+	- luz de alarma roja (probs USB) que se apaga cuando el usuario responde (continuar o parar)
+	- maybe senal sonora (buzzer)
 	- adapt also for detection_lat_simple
 	- current e2e latency (maybe diferenciar entre modo experimento y modo user?)
 * CAD:
