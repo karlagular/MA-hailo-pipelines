@@ -308,6 +308,9 @@ class user_app_callback_class(app_callback_class):
         
         # Latency statistics
         self.latency_stats = LatencyStats()
+        
+        # Cup tracking (for cooldown using tracker IDs)
+        self.tracked_cup_ids = set()  # Store tracking IDs of cups already alerted
 
     def find_pipeline_from_pad(self, pad):
         elem = pad.get_parent_element()
@@ -398,18 +401,31 @@ def app_callback(pad, info, user_data):
                         print(msg)
                     user_data.missing_logs += 1
 
-    # Detection parsing - only log cups
+    # Detection parsing - only log cups with tracker-based cooldown
     roi = hailo.get_roi_from_buffer(buf)
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
     if detections:
         for detection in detections:
             label = detection.get_label()
-            # Only print if it's a cup
-            if label.lower() == "cup":
-                confidence = detection.get_confidence()
-                print(f"[DETECTION] Object: {label}, Confidence: {confidence:.2f}")
-                if user_data.logger:
-                    user_data.logger.log(f"[DETECTION] Object: {label}, Confidence: {confidence:.2f}")
+            # Only process cups
+            if label and label.lower() == "cup":
+                # Get tracking ID from hailo_tracker (class-id=42)
+                track_objs = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
+                tracking_id = track_objs[0].get_id() if track_objs else None
+                
+                if tracking_id is not None and tracking_id not in user_data.tracked_cup_ids:
+                    # New tracked cup detected - alert once per tracking ID
+                    # This only works if tracker is altered in detection_pipeline.py line ~90 to track class_id=42 (cup) 
+                    # line ~90: tracker_pipeline = TRACKER_PIPELINE(class_id=42)
+                    # set keep_lost_frames=10 instead of default 2 in gstreamer_helper_pipelines.py line ~333
+                    # line ~333: def TRACKER_PIPELINE(class_id, kalman_dist_thr=0.8, iou_thr=0.9, init_iou_thr=0.7, keep_new_frames=2, keep_tracked_frames=15, keep_lost_frames=10, keep_past_metadata=False, qos=False, name='hailo_tracker'):
+                    confidence = detection.get_confidence()
+                    print(f"[DETECTION] Object: {label}, Confidence: {confidence:.2f}, Tracking ID: {tracking_id}", flush=True)
+                    if user_data.logger:
+                        user_data.logger.log(f"[DETECTION] Object: {label}, Confidence: {confidence:.2f}, Tracking ID: {tracking_id}")
+                    # Remember this cup to suppress future alerts
+                    user_data.tracked_cup_ids.add(tracking_id)
+                # else: suppress (cup already alerted or not being tracked)
 
     return Gst.PadProbeReturn.OK
 
