@@ -6,5 +6,6 @@
   "enclosure": 0,
   "vibration": 1,
   "z-axis": "Druckkopf",
-  "kamerawinkel": "frontal"
+  "kamerawinkel": "frontal",
+  "machine_model": "bambulab"
 }

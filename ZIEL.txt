@@ -41,9 +41,6 @@ TO DOs:
 	- hay que cambiar el case pq no entra, maybe incluso pedir tornillos largos para sostener
 	- comprobar que el labeling del dataset sintetico hace las bounding boxes al rededor del error y no de la pieza (para hacerlo igual yo con mis imagenes de internet)
 * PIPELINE:
-	- track "cup" en vez de "person"
-	- adecuar el logging de detecciones a la terminal para evitar spam + adecuar GUI para procesar todas las detecciones
-	- es mejor hacer el log de las detecciones en el pipeline o en el gui?
 	- guardar una foto cuando se detecte un error con timestamp
 	- decidir entre detection_lat y -_simple
 	- devolver output en formato deseado
@@ -52,8 +49,6 @@ TO DOs:
 	- convertir log txt en cvs, excel o pandas
 	- hacer graficas
 * GUI: 
-	- mejorar tiempo de senal de alarma:
-		- procesar todas las detecciones de la inferencia (se evitara el spam de la terminal desde dentro)
 	- adapt also for detection_lat_simple
 	- current e2e latency (maybe diferenciar entre modo experimento y modo user?)
 * CAD:
@@ -61,6 +56,7 @@ TO DOs:
 	- dibujar case para mantener junto camara (removible), rpi+hat, ventilador, display cables conectados
 	- dibujar la base (pies) del sistema con cableado ordenado
 * ORGA:
+	- organizar meeting con Max
 	- invertir pins de venitrlador amarillo y negro
 	- conectar ventilador a rpi io pins: dejar uno libre, power +5V (amarillo), ground (negro), dejar dos libres, pwm signal +5V (azul)
 	- revisar y etablecer las variables de los experimentos: HW: STREAM, CAMERA, COMPUTER; EXP: Beleuchtung, enclosure, Vibration, Bewegung in Z, Kamerawinkel
