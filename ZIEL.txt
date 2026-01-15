@@ -45,10 +45,15 @@ TO DOs:
 	- decidir entre detection_lat y -_simple
 	- devolver output en formato deseado (MQTT/ OPC UA)
 	- detener el programa a partir de una senal
+	- rpi/Jetson debe mandar una senal de pausa a la impresora:
+		* investigar si el formato es mqtt o step(?)
 * POSTPROCESSING:
 	- convertir log txt en cvs, excel o pandas
 	- hacer graficas
 * GUI:
+	- trigger senal de pausar el proceso & reanudar
+		* y/o indicar que se envio senal para pausar 
+		* y/o indicar que esta en pausa de acuerdo al feedabk/senal proveniente de la impresora
 	- luz de alarma roja (probs USB) que se apaga cuando el usuario responde (continuar o parar)
 	- maybe senal sonora (buzzer)
 	- adapt also for detection_lat_simple
@@ -58,8 +63,14 @@ TO DOs:
 	- dibujar case para mantener junto camara (removible), rpi+hat, ventilador, display cables conectados
 	- dibujar la base (pies) del sistema con cableado ordenado
 * ORGA:
-	- organizar meeting con Max
-	- invertir pins de venitrlador amarillo y negro
+	- presionar a Johannes por el modelo de inferencia
+	- preguntar por cables y cosas del rpi a jan scheuman
+	- mandar link de DoE a Max
+	- Nutzwertanalyse!! 
+		* Como se hace? (con fuentes)
+		* Hacerlo e insertarlo al documento de word
+	- Methodik: escribir capitulo mas o menos para Max
+	- llenar los formularios para que hagan mi Ausweis del IAPT
 	- conectar ventilador a rpi io pins: dejar uno libre, power +5V (amarillo), ground (negro), dejar dos libres, pwm signal +5V (azul)
 	- revisar y etablecer las variables de los experimentos: HW: STREAM, CAMERA, COMPUTER; EXP: Beleuchtung, enclosure, Vibration, Bewegung in Z, Kamerawinkel
 	- determinar otros factores a documentar (temperatura)
