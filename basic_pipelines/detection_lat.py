@@ -19,6 +19,100 @@ import argparse
 
 
 # -----------------------------------------------------------------------------------------------
+# Frame saving helper
+# -----------------------------------------------------------------------------------------------
+def save_detection_frame(buf, pad, detection, tracking_id, confidence, user_data):
+    """
+    Save frame with annotated detection when alarm triggers.
+    
+    Args:
+        buf: GStreamer buffer
+        pad: GStreamer pad (for getting dimensions)
+        detection: Hailo detection object
+        tracking_id: Tracker-assigned ID
+        confidence: Detection confidence score
+        user_data: Callback user data
+    
+    Returns:
+        frame: Saved frame as numpy array (or None on error)
+    """
+    try:
+        # Get frame dimensions and extract frame
+        format, width, height = get_caps_from_pad(pad)
+        if format is None or width is None or height is None:
+            print("[FRAME_SAVE] Could not get frame dimensions")
+            return None
+        
+        frame = get_numpy_from_buffer(buf, format, width, height)
+        if frame is None:
+            print("[FRAME_SAVE] Could not extract frame")
+            return None
+        
+        # Draw bounding box
+        bbox = detection.get_bbox()
+        x1 = int(bbox.xmin() * width)
+        y1 = int(bbox.ymin() * height)
+        x2 = int((bbox.xmin() + bbox.width()) * width)
+        y2 = int((bbox.ymin() + bbox.height()) * height)
+        
+        # Red box around cup
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 3)
+        
+        # Detection label with background
+        label = f"CUP ID:{tracking_id} Conf:{confidence:.2f}"
+        label_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)[0]
+        cv2.rectangle(frame, (x1, y1 - label_size[1] - 10), 
+                     (x1 + label_size[0], y1), (0, 0, 255), -1)
+        cv2.putText(frame, label, (x1, y1 - 5), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        
+        # Timestamp overlay with shadow for visibility
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        cv2.putText(frame, timestamp, (10, 35), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 3)  # Shadow
+        cv2.putText(frame, timestamp, (10, 35), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
+        
+        # Warning banner at bottom
+        banner_text = "ALARM TRIGGERED"
+        banner_size = cv2.getTextSize(banner_text, cv2.FONT_HERSHEY_SIMPLEX, 1.5, 4)[0]
+        banner_x = (width - banner_size[0]) // 2
+        cv2.rectangle(frame, (banner_x - 10, height - 60), 
+                     (banner_x + banner_size[0] + 10, height - 10), (0, 0, 255), -1)
+        cv2.putText(frame, banner_text, (banner_x, height - 25), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 4)
+        
+        # Determine save directory
+        if user_data.logger and hasattr(user_data.logger, 'log_file'):
+            save_dir = Path(user_data.logger.log_file).parent / "alarm_frames"
+        else:
+            save_dir = Path(__file__).parent.parent / "alarm_frames"
+        
+        save_dir.mkdir(exist_ok=True)
+        
+        # Save with detailed filename
+        timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S_%f')[:-3]
+        filename = f"alarm_{timestamp_str}_id{tracking_id}_conf{int(confidence*100)}.jpg"
+        save_path = save_dir / filename
+        
+        # Save with high quality
+        cv2.imwrite(str(save_path), frame, [cv2.IMWRITE_JPEG_QUALITY, 95])
+        
+        print(f"[FRAME_SAVE] ✓ Saved to {save_path}")
+        
+        if user_data.logger:
+            user_data.logger.log(f"[FRAME_SAVE] {filename}")
+        
+        return frame
+        
+    except Exception as e:
+        print(f"[FRAME_SAVE ERROR] {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
+# -----------------------------------------------------------------------------------------------
 # Experiment setup helpers
 # -----------------------------------------------------------------------------------------------
 def load_experiment_config(config_path: str = "experiment_config.json"):
@@ -420,6 +514,10 @@ def app_callback(pad, info, user_data):
                     # set keep_lost_frames=10 instead of default 2 in gstreamer_helper_pipelines.py line ~333
                     # line ~333: def TRACKER_PIPELINE(class_id, kalman_dist_thr=0.8, iou_thr=0.9, init_iou_thr=0.7, keep_new_frames=2, keep_tracked_frames=15, keep_lost_frames=10, keep_past_metadata=False, qos=False, name='hailo_tracker'):
                     confidence = detection.get_confidence()
+                    
+                    # Save frame with detection overlay
+                    save_detection_frame(buf, pad, detection, tracking_id, confidence, user_data)
+                    
                     print(f"[DETECTION] Object: {label}, Confidence: {confidence:.2f}, Tracking ID: {tracking_id}", flush=True)
                     if user_data.logger:
                         user_data.logger.log(f"[DETECTION] Object: {label}, Confidence: {confidence:.2f}, Tracking ID: {tracking_id}")
