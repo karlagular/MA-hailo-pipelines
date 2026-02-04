@@ -41,7 +41,7 @@ TO DOs:
 	- pedir Stückliste
 	- comprobar que el labeling del dataset sintetico hace las bounding boxes al rededor del error y no de la pieza (para hacerlo igual yo con mis imagenes de internet)
 * PIPELINE:
-	- guardar una foto cuando se detecte un error con timestamp
+	- corregir colores de foto al guardar
 	- configurr rpi 0 como rtsp camera
 	- decidir entre detection_lat y -_simple
 	- devolver output en formato deseado (MQTT/ OPC UA)
