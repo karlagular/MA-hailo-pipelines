@@ -36,12 +36,13 @@ del sistema:
 
 TO DOs:
 * PREGUNTAS PARA JOHANNES:
-	- contacto del HiWi que le sabe a su repository del jetson
 	- contacto del que corta los item profiles para mi construccion
-	- hay que cambiar el case pq no entra, maybe incluso pedir tornillos largos para sostener
+	- pedir tornillos largos para sostener
+	- pedir Stückliste
 	- comprobar que el labeling del dataset sintetico hace las bounding boxes al rededor del error y no de la pieza (para hacerlo igual yo con mis imagenes de internet)
 * PIPELINE:
 	- guardar una foto cuando se detecte un error con timestamp
+	- configurr rpi 0 como rtsp camera
 	- decidir entre detection_lat y -_simple
 	- devolver output en formato deseado (MQTT/ OPC UA)
 	- detener el programa a partir de una senal
@@ -59,18 +60,14 @@ TO DOs:
 	- adapt also for detection_lat_simple
 	- current e2e latency (maybe diferenciar entre modo experimento y modo user?)
 * CAD:
-	- descargar modelo de rpi + AI hat + Ventilador
-	- dibujar case para mantener junto camara (removible), rpi+hat, ventilador, display cables conectados
-	- dibujar la base (pies) del sistema con cableado ordenado
+	- cableado?
+	- como fijamos alarma luminica y sonora?
 * ORGA:
 	- presionar a Johannes por el modelo de inferencia
-	- preguntar por cables y cosas del rpi a jan scheuman
 	- mandar link de DoE a Max
 	- Nutzwertanalyse!! 
 		* Como se hace? (con fuentes)
 		* Hacerlo e insertarlo al documento de word
-	- Methodik: escribir capitulo mas o menos para Max
-	- llenar los formularios para que hagan mi Ausweis del IAPT
 	- conectar ventilador a rpi io pins: dejar uno libre, power +5V (amarillo), ground (negro), dejar dos libres, pwm signal +5V (azul)
 	- revisar y etablecer las variables de los experimentos: HW: STREAM, CAMERA, COMPUTER; EXP: Beleuchtung, enclosure, Vibration, Bewegung in Z, Kamerawinkel
 	- determinar otros factores a documentar (temperatura)
