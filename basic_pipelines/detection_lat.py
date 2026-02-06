@@ -48,6 +48,9 @@ def save_detection_frame(buf, pad, detection, tracking_id, confidence, user_data
             print("[FRAME_SAVE] Could not extract frame")
             return None
         
+        # Convert RGB to BGR for OpenCV (get_numpy_from_buffer returns RGB)
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        
         # Draw bounding box
         bbox = detection.get_bbox()
         x1 = int(bbox.xmin() * width)
