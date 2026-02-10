@@ -41,8 +41,9 @@ TO DOs:
 	- pedir Stückliste
 	- comprobar que el labeling del dataset sintetico hace las bounding boxes al rededor del error y no de la pieza (para hacerlo igual yo con mis imagenes de internet)
 * PIPELINE:
-	- corregir colores de foto al guardar
-	- configurr rpi 0 como rtsp camera
+	- convertir modelo de stutzstrukturen de onxx a hef
+	- hacer prueba del modelo de stutzstrukturen en el instituto
+	- documentar el cambio (agregar rtsp como input) en gstreamer_helper_pipelines.py (dentro del venv_hailo_rpi_examples >lib/python3.11/site-packages > hailo_apps/hailo_app_python > core > gstreamer >)
 	- decidir entre detection_lat y -_simple
 	- devolver output en formato deseado (MQTT/ OPC UA)
 	- detener el programa a partir de una senal
